@@ -1,677 +1,1270 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AutoBroskiGroup</title>
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1a1a24;
-    --accent: #6c63ff;
-    --accent2: #ff6584;
-    --gold: #ffd700;
-    --text: #e8e8f0;
-    --text2: #9090b0;
-    --green: #00e676;
-    --red: #ff5252;
-    --orange: #ff9800;
-    --ordinario: #ff9800;
-    --ordinario-bg: #1a1200;
-    --radius: 16px;
-    --shadow: 0 8px 32px rgba(108,99,255,0.15);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  .topbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 60px;
-    background: rgba(19,19,26,0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(108,99,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    z-index: 1000;
-  }
-  .topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .topbar-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--accent);
-    display: none;
-  }
-  .topbar-logo.visible { display: block; }
-  .topbar-name {
-    font-size: 16px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    white-space: nowrap;
-  }
-  .topbar-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .btn-home {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    border: none;
-    padding: 7px 20px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: none;
-    transition: all 0.3s;
-    letter-spacing: 0.5px;
-  }
-  .btn-home:hover { opacity: 0.85; transform: scale(1.04); }
-  .btn-home.visible { display: block; }
-  .hamburger {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .hamburger span {
-    display: block;
-    width: 24px;
-    height: 2px;
-    background: var(--text);
-    border-radius: 2px;
-    transition: all 0.3s;
-  }
-  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
-  .hamburger.open span:nth-child(2) { opacity: 0; }
-  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
-  .menu-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 900;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .menu-overlay.open { opacity: 1; pointer-events: all; }
-  .menu-drawer {
-    position: fixed;
-    top: 0; right: 0;
-    width: min(320px, 85vw);
-    height: 100%;
-    background: var(--surface);
-    z-index: 950;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
-    padding: 80px 0 24px;
-    overflow-y: auto;
-  }
-  .menu-drawer.open { transform: translateX(0); }
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 24px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-    border-left: 3px solid transparent;
-  }
-  .menu-item:hover, .menu-item.active {
-    background: rgba(108,99,255,0.12);
-    border-left-color: var(--accent);
-    color: white;
-  }
-  .section-page {
-    display: none;
-    position: fixed;
-    inset: 60px 0 0 0;
-    background: var(--bg);
-    overflow-y: auto;
-    z-index: 100;
-    animation: slideIn 0.35s cubic-bezier(.4,0,.2,1);
-  }
-  .section-page.active { display: block; }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(40px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  .section-inner {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 28px 20px 80px;
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .card h3 {
-    font-size: 18px;
-    margin-bottom: 12px;
-    color: var(--text);
-  }
-  .card p, .card li {
-    font-size: 14px;
-    color: var(--text2);
-    line-height: 1.7;
-    margin-bottom: 8px;
-  }
-  .card ul { padding-left: 20px; }
-  .card a { color: var(--accent); text-decoration: none; }
-  .card a:hover { text-decoration: underline; }
-  input, select, textarea {
-    background: var(--surface2);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: var(--text);
-    padding: 10px 14px;
-    font-size: 14px;
-    width: 100%;
-    outline: none;
-    transition: border 0.2s;
-    margin-bottom: 10px;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--accent);
-  }
-  .btn {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-block;
-  }
-  .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AutoBroskiGroup v5.5 FULL</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1a1a24;
+      --surface3: #20202d;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e8e8f0;
+      --text2: #9090b0;
+      --green: #00e676;
+      --red: #ff5252;
+      --orange: #ff9800;
+      --blue: #4aa3ff;
+      --ordinario: #ff9800;
+      --ordinario-bg: rgba(255,152,0,0.1);
+      --radius: 16px;
+      --topbar-h: 60px;
+      --shadow: 0 14px 40px rgba(0,0,0,.28);
+      --shadow-soft: 0 8px 20px rgba(0,0,0,.16);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; }
+    body { min-height: 100vh; }
+    img { max-width: 100%; display: block; }
+    button, input, textarea, select { font: inherit; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px;
+      z-index: 1000;
+      background: rgba(19,19,26,.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    #topLogo {
+      width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+      border: 2px solid var(--accent); display: none;
+    }
+    .brand {
+      font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
+    }
+    .home-btn {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      border: 0; border-radius: 20px; padding: 8px 24px; font-weight: 700;
+      color: #fff; cursor: pointer; display: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: var(--shadow);
+    }
+    .icon-btn, .theme-btn {
+      width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
+      background: var(--surface2); color: var(--text); cursor: pointer;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .menu-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; visibility: hidden;
+      transition: .25s ease; z-index: 998;
+    }
+    .menu-overlay.show { opacity: 1; visibility: visible; }
+    .menu-drawer {
+      position: fixed; top: var(--topbar-h); left: 0; bottom: 0; width: min(320px, 85vw);
+      background: var(--surface); border-right: 1px solid rgba(255,255,255,.06);
+      transform: translateX(-100%); transition: transform .3s ease; z-index: 999; overflow: auto; padding: 18px 0;
+    }
+    .menu-drawer.show { transform: translateX(0); }
+    .menu-section-title { padding: 10px 24px; color: var(--text2); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .menu-item {
+      width: 100%; text-align: left; border: 0; background: transparent; color: var(--text); cursor: pointer;
+      padding: 14px 24px; border-left: 3px solid transparent;
+    }
+    .menu-item:hover, .menu-item.active { background: rgba(108,99,255,.12); border-left-color: var(--accent); }
+    .menu-item.ordinario-item:hover, .menu-item.ordinario-item.active { background: rgba(255,152,0,.12); border-left-color: var(--orange); }
+
+    .app { padding-top: var(--topbar-h); }
+    .dashboard { padding: 20px; }
+    .hero, .card, .stat, .list-card, .history-item, .toast, .warning-banner {
+      background: var(--surface); border: 1px solid rgba(255,255,255,.06); border-radius: var(--radius); box-shadow: var(--shadow-soft);
+    }
+    .hero { padding: 22px; margin-bottom: 18px; background: linear-gradient(180deg, rgba(108,99,255,.10), rgba(255,255,255,.01)), var(--surface); }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(28px, 5vw, 42px); }
+    .hero p { margin: 0; color: var(--text2); }
+    .stats-grid, .cards-grid, .two-col, .three-col, .form-grid { display: grid; gap: 16px; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); margin-bottom: 18px; }
+    .cards-grid, .two-col, .three-col, .form-grid { grid-template-columns: 1fr; }
+    .stat { padding: 16px; }
+    .stat small { display: block; color: var(--text2); margin-bottom: 8px; }
+    .stat strong { font-size: 24px; }
+    .card { padding: 18px; }
+    .card h2, .card h3, .card h4 { margin-top: 0; }
+    .muted { color: var(--text2); }
+    .section-page {
+      position: fixed; inset: var(--topbar-h) 0 0 0; background: var(--bg); overflow: auto; display: none; z-index: 20;
+    }
+    .section-page.active { display: block; animation: slideIn .35s cubic-bezier(.4,0,.2,1); }
+    .section-inner { max-width: 980px; margin: 0 auto; padding: 20px; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+    label { display: block; font-size: 14px; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; min-height: 44px; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08); background: var(--surface2); color: var(--text); outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(108,99,255,.18); }
+    textarea { resize: vertical; min-height: 110px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .btn {
+      min-height: 44px; padding: 10px 16px; border-radius: 12px; border: 0; cursor: pointer; font-weight: 700;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,.08); }
+    .btn-success { background: var(--green); color: #072114; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-ordinario { background: var(--orange); color: #251300; }
+    .btn-ghost { background: transparent; color: var(--text2); border: 1px dashed rgba(255,255,255,.10); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      background: rgba(255,255,255,.08);
+    }
+    .badge.green { background: rgba(0,230,118,.15); color: #7dffba; }
+    .badge.red { background: rgba(255,82,82,.15); color: #ff9a9a; }
+    .badge.orange { background: rgba(255,152,0,.15); color: #ffc273; }
+    .badge.blue { background: rgba(74,163,255,.15); color: #a6d3ff; }
+    .badge.purple { background: rgba(108,99,255,.14); color: #c4c0ff; }
+
+    .item-list, .history-list, .tips-list, .links-list { display: grid; gap: 12px; margin-top: 14px; }
+    .list-card, .history-item { padding: 16px; }
+    .meta { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+    .empty { color: var(--text2); padding: 10px 0; }
+    .ordinario-card { background: var(--ordinario-bg); border: 1px solid rgba(255,152,0,.2); }
+    .warning-banner { padding: 14px 16px; margin-bottom: 16px; background: rgba(255,152,0,.08); }
+    .toast-wrap { position: fixed; right: 14px; bottom: 14px; z-index: 2000; display: grid; gap: 10px; }
+    .toast { padding: 12px 14px; min-width: 240px; }
+    .toast.success { border-color: rgba(0,230,118,.24); }
+    .toast.error { border-color: rgba(255,82,82,.24); }
+    .toast.info { border-color: rgba(108,99,255,.24); }
+    .hidden { display: none !important; }
+
+    @media (min-width: 640px) {
+      .section-inner { padding: 32px 24px; }
+      .menu-drawer { width: 360px; }
+      .stats-grid { grid-template-columns: repeat(4,1fr); }
+      .cards-grid, .two-col { grid-template-columns: repeat(2,1fr); }
+      .three-col { grid-template-columns: repeat(3,1fr); }
+      .form-grid.two { grid-template-columns: repeat(2,1fr); }
+      .brand { max-width: 280px; }
+    }
+    @media (min-width: 1024px) {
+      .section-inner { padding: 40px; }
+    }
+  </style>
 </head>
 <body>
+  <a href="#dashboard" class="sr-only">Salta al contenuto</a>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <img class="topbar-logo" id="topLogo" alt="Logo"/>
-    <div class="topbar-name">AutoBroskiGroup</div>
-  </div>
-  <div class="topbar-center">
-    <button class="btn-home" id="btnHome">HOME</button>
-  </div>
-  <div class="topbar-right">
-    <button class="hamburger" id="hamburger">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-  </div>
-</div>
+  <header class="topbar">
+    <div class="topbar-left">
+      <img id="topLogo" alt="Logo attività" />
+      <div class="brand">AutoBroskiGroup</div>
+    </div>
+    <button id="homeBtn" class="home-btn">HOME</button>
+    <div class="topbar-right">
+      <button id="themeBtn" class="theme-btn" aria-label="Tema">◐</button>
+      <button id="menuBtn" class="icon-btn" aria-label="Apri menu">☰</button>
+    </div>
+  </header>
 
-<div class="menu-overlay" id="menuOverlay"></div>
-<div class="menu-drawer" id="menuDrawer">
-  <div class="menu-item" data-page="dashboard">📊 Dashboard</div>
-  <div class="menu-item" data-page="auto">🚗 Auto</div>
-  <div class="menu-item" data-page="clienti">👥 Clienti</div>
-  <div class="menu-item" data-page="scadenze">📅 Scadenze</div>
-  <div class="menu-item" data-page="documenti">📄 Documenti</div>
-  <div class="menu-item" data-page="link-utili">🔗 Link Utili</div>
-  <div class="menu-item" data-page="forfettario">💼 Forfettario</div>
-  <div class="menu-item" data-page="ordinario">📈 Ordinario</div>
-  <div class="menu-item" data-page="consigli">💡 Consigli</div>
-  <div class="menu-item" data-page="ai">🤖 AI</div>
-  <div class="menu-item" data-page="impostazioni">⚙️ Impostazioni</div>
-</div>
+  <div id="menuOverlay" class="menu-overlay"></div>
 
-<div id="homePage" style="padding-top:80px;text-align:center;">
-  <h1 style="font-size:32px;margin:20px 0;">Benvenuto in AutoBroskiGroup</h1>
-  <p style="color:var(--text2);max-width:600px;margin:0 auto 40px;">La tua dashboard completa per gestire rivendita auto, calcoli fiscali forfettari, margini reali e documentazione. Controlla quanto puoi reinvestire, dove stai guadagnando davvero e pianifica le prossime mosse.</p>
-</div>
-<div class="section-page" id="dashboardPage">
-  <div class="section-inner">
-    <h2>📊 Dashboard</h2>
-    <div class="card">
-      <h3>Panoramica Attività</h3>
-      <p>Ricavi totali: <strong>€ 0</strong></p>
-      <p>Margine medio: <strong>0%</strong></p>
-      <p>Auto in vendita: <strong>0</strong></p>
-      <p>Capitale reinvestibile: <strong>€ 0</strong></p>
-    </div>
-    <div class="card">
-      <h3>Alert Fiscali</h3>
-      <p>Soglia forfettario: <strong>€ 85.000</strong></p>
-      <p>Ricavi attuali: <strong>€ 0</strong> (0%)</p>
-    </div>
-  </div>
-</div>
+  <aside id="menuDrawer" class="menu-drawer">
+    <div class="menu-section-title">Gestione</div>
+    <button class="menu-item" data-page="dashboard">Dashboard</button>
+    <button class="menu-item" data-page="auto">Auto</button>
+    <button class="menu-item" data-page="clienti">Clienti</button>
+    <button class="menu-item" data-page="scadenze">Scadenze</button>
+    <button class="menu-item" data-page="documenti">Documenti</button>
 
-<div class="section-page" id="autoPage">
-  <div class="section-inner">
-    <h2>🚗 Gestione Auto</h2>
-    <div class="card">
-      <h3>Aggiungi Nuova Auto</h3>
-      <input type="text" placeholder="Marca e Modello"/>
-      <input type="text" placeholder="Targa"/>
-      <input type="number" placeholder="Prezzo Acquisto"/>
-      <input type="number" placeholder="Prezzo Vendita Target"/>
-      <button class="btn">Aggiungi Auto</button>
-    </div>
-    <div class="card">
-      <h3>Le Tue Auto</h3>
-      <p>Nessuna auto inserita</p>
-    </div>
-  </div>
-</div>
+    <div class="menu-section-title">Risorse</div>
+    <button class="menu-item" data-page="link-utili">Link Utili</button>
+    <button class="menu-item" data-page="forfettario">Forfettario</button>
+    <button class="menu-item ordinario-item" data-page="ordinario">Ordinario</button>
+    <button class="menu-item" data-page="consigli">Consigli</button>
 
-<div class="section-page" id="clientiPage">
-  <div class="section-inner">
-    <h2>👥 Gestione Clienti</h2>
-    <div class="card">
-      <h3>Aggiungi Nuovo Cliente</h3>
-      <input type="text" placeholder="Nome Completo"/>
-      <input type="tel" placeholder="Telefono"/>
-      <input type="email" placeholder="Email"/>
-      <textarea placeholder="Note"></textarea>
-      <button class="btn">Aggiungi Cliente</button>
-    </div>
-    <div class="card">
-      <h3>I Tuoi Clienti</h3>
-      <p>Nessun cliente inserito</p>
-    </div>
-  </div>
-</div>
+    <div class="menu-section-title">Sistema</div>
+    <button class="menu-item" data-page="ai">AI</button>
+    <button class="menu-item" data-page="impostazioni">Impostazioni</button>
+  </aside>
 
-<div class="section-page" id="scadenzePage">
-  <div class="section-inner">
-    <h2>📅 Scadenze e To-Do</h2>
-    <div class="card">
-      <h3>Aggiungi Scadenza</h3>
-      <input type="text" placeholder="Titolo"/>
-      <input type="date"/>
-      <textarea placeholder="Descrizione"></textarea>
-      <button class="btn">Aggiungi Scadenza</button>
-    </div>
-    <div class="card">
-      <h3>Prossime Scadenze</h3>
-      <p>Nessuna scadenza inserita</p>
-    </div>
-  </div>
-</div>
+  <div id="toastWrap" class="toast-wrap"></div>
 
-<div class="section-page" id="documentiPage">
-  <div class="section-inner">
-    <h2>📄 Archivio Documenti</h2>
-    <div class="card">
-      <h3>Carica Documento</h3>
-      <input type="text" placeholder="Nome Documento"/>
-      <input type="file"/>
-      <button class="btn">Carica</button>
-    </div>
-    <div class="card">
-      <h3>Documenti Salvati</h3>
-      <p>Nessun documento caricato</p>
-    </div>
-  </div>
-</div>
+  <main class="app">
+    <section id="dashboard" class="dashboard">
+      <div id="backupReminder" class="warning-banner hidden"></div>
 
-<div class="section-page" id="link-utiliPage">
-  <div class="section-inner">
-    <h2>🔗 Link Utili</h2>
-    <div class="card">
-      <h3>Risorse Ufficiali</h3>
-      <ul>
-        ><a href="https://impresa.italia.it" target="_blank">Impresa Italia - Cassetto Digitale Impresa</a></li>
-        ><a href="https://www.registroimprese.it" target="_blank">Registro Imprese - Camera di Commercio</a></li>
-        ><a href="https://www.normattiva.it" target="_blank">Normattiva - Leggi e Norme</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Mercato Auto</h3>
-      <ul>
-        ><a href="https://www.autoscout24.it" target="_blank">AutoScout24</a></li>
-        ><a href="https://www.subito.it/auto" target="_blank">Subito - Auto Usate</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Servizi ACI e PRA</h3>
-      <ul>
-        ><a href="https://www.aci.it" target="_blank">ACI - Automobile Club Italia</a></li>
-        ><a href="https://www.aci.it/servizi-online/visura-pra.html" target="_blank">Visura PRA</a></li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<div class="section-page" id="forfettarioPage">
-  <div class="section-inner">
-    <h2>💼 Regime Forfettario</h2>
-    <div class="card">
-      <h3>Informazioni Rapide</h3>
-      <p><strong>Soglia ordinaria:</strong> 85.000€ di ricavi/compensi annui</p>
-      <p><strong>Uscita immediata:</strong> oltre 100.000€</p>
-      <p><strong>Coefficiente redditività commercio:</strong> 40%</p>
-      <p><strong>Imposta sostitutiva:</strong> 15% (5% per primi 5 anni con requisiti)</p>
-      <p><strong>IVA:</strong> Non addebitata in fattura</p>
-    </div>
-    <div class="card">
-      <h3>Guida Completa Forfettario</h3>
-      <p><strong>Accesso al regime:</strong> Il regime forfettario è riservato a persone fisiche con ricavi/compensi non superiori a 85.000€ nell'anno precedente.</p>
-      <p><strong>Limiti e vincoli:</strong> Limite spese per personale dipendente/collaboratori: 20.000€ lordi annui. Non puoi aderire se hai partecipazioni in società di persone o srl.</p>
-      <p><strong>Calcolo reddito:</strong> Il reddito imponibile si calcola applicando il coefficiente di redditività ai ricavi (40% per commercio all'ingrosso e dettaglio, 62% per intermediari del commercio).</p>
-      <p><strong>Contributi INPS:</strong> I contributi previdenziali obbligatori sono deducibili dal reddito prima del calcolo dell'imposta sostitutiva.</p>
-      <p><strong>Vantaggi:</strong> Contabilità semplificata, niente liquidazioni IVA periodiche, flat tax al 15% (o 5% agevolato).</p>
-      <p><strong>Riferimenti normativi:</strong> Legge 190/2014, Circolare 32/E del 5 dicembre 2023 su accesso, permanenza e uscita dal regime.</p>
-    </div>
-  </div>
-</div>
-
-<div class="section-page" id="ordinarioPage">
-  <div class="section-inner">
-    <h2>📈 Regime Ordinario</h2>
-    <div class="card" style="background:var(--ordinario-bg);border-color:var(--ordinario);">
-      <h3 style="color:var(--ordinario);">Informazioni Regime Ordinario</h3>
-      <p>Nel regime ordinario si applica <strong>IVA</strong> con aliquote standard (4%, 10%, 22%).</p>
-      <p><strong>Tassazione:</strong> IRPEF progressiva per persone fisiche (scaglioni 23%, 33%, 43% per il 2026).</p>
-      <p><strong>Deducibilità:</strong> Possibilità di dedurre i costi effettivamente sostenuti e documentati.</p>
-      <p><strong>Contabilità:</strong> Gestione più complessa con adempimenti periodici (liquidazioni IVA trimestrali o mensili, dichiarazioni annuali).</p>
-    </div>
-    <div class="card" style="background:var(--ordinario-bg);border-color:var(--ordinario);">
-      <h3 style="color:var(--ordinario);">Simulatore Ordinario</h3>
-      <p>Inserisci i dati per simulare come sarebbero andate le spese in regime ordinario:</p>
-      <input type="number" placeholder="Ricavi Totali"/>
-      <input type="number" placeholder="Costi Deducibili"/>
-      <button class="btn" style="background:var(--ordinario);">Calcola Simulazione</button>
-      <div id="resultOrdinario" style="margin-top:16px;"></div>
-    </div>
-  </div>
-</div>
-
-<div class="section-page" id="consigliPage">
-  <div class="section-inner">
-    <h2>💡 Consigli Pratici</h2>
-    <div class="card">
-      <h3>Gestione Capitale</h3>
-      <p>✅ Non bloccare tutto il capitale su una sola auto</p>
-      <p>✅ Controlla il margine reale prima di chiudere una vendita</p>
-      <p>✅ Tieni sempre liquidità per nuove opportunità</p>
-    </div>
-    <div class="card">
-      <h3>Documenti da Conservare</h3>
-      <p>✅ Fatture di acquisto e vendita</p>
-      <p>✅ Passaggi di proprietà e documenti PRA</p>
-      <p>✅ F24 e ricevute INPS</p>
-      <p>✅ Contratti e accordi scritti</p>
-    </div>
-    <div class="card">
-      <h3>Controlli Settimanali</h3>
-      <p>✅ Verifica ricavi aggiornati rispetto alla soglia</p>
-      <p>✅ Aggiorna stato trattative e follow-up clienti</p>
-      <p>✅ Controlla auto ferme da troppo tempo</p>
-    </div>
-  </div>
-</div>
-
-<div class="section-page" id="aiPage">
-  <div class="section-inner">
-    <h2>🤖 Assistente AI</h2>
-    <div class="card">
-      <h3>Fai una Domanda</h3>
-      <textarea placeholder="Es: Quanto posso reinvestire? Sto andando bene con i margini?" rows="4"></textarea>
-      <button class="btn">Chiedi all'AI</button>
-    </div>
-    <div class="card">
-      <h3>Risposte</h3>
-      <p>Le risposte dell'assistente appariranno qui, basate sui dati della tua attività.</p>
-    </div>
-  </div>
-</div>
-
-<div class="section-page" id="impostazioniPage">
-  <div class="section-inner">
-    <h2>⚙️ Impostazioni</h2>
-    <div class="card">
-      <h3>PIN di Accesso</h3>
-      <input type="text" id="pinInput" placeholder="PIN a 6 cifre" value="845620" maxlength="6"/>
-      <button class="btn" onclick="savePIN()">Salva PIN</button>
-    </div>
-    <div class="card">
-      <h3>Logo Attività</h3>
-      <input type="file" id="logoUpload" accept="image/*"/>
-      <button class="btn" onclick="uploadLogo()">Carica Logo</button>
-      <p style="font-size:12px;color:var(--text2);margin-top:8px;">Il logo apparirà in alto a sinistra accanto al nome AutoBroskiGroup</p>
-    </div>
-    <div class="card">
-      <h3>Cronologia Modifiche</h3>
-      <div id="historyList">
-        <p>Nessuna modifica registrata</p>
+      <div class="hero">
+        <h1>Controllo attività · rivendita auto · strategia quotidiana</h1>
+        <p>Dashboard principale unica, con panoramica attività, statistiche immediate, alert fiscali e priorità operative del giorno.</p>
       </div>
-    </div>
-    <div class="card">
-      <h3>Backup e Export</h3>
-      <button class="btn">Esporta Dati JSON</button>
-      <button class="btn" style="background:var(--green);margin-left:10px;">Importa Dati JSON</button>
-    </div>
-  </div>
-</div>
-<script>
-// Variabili globali
-let currentPage = 'home';
-let appData = {
-  pin: '845620',
-  logo: '',
-  cars: [],
-  clients: [],
-  deadlines: [],
-  documents: [],
-  history: []
-};
 
-// Carica dati salvati
-function loadData() {
-  const saved = localStorage.getItem('autoBroskiData');
-  if (saved) {
-    appData = JSON.parse(saved);
-  }
-  updateLogo();
-}
+      <div class="stats-grid">
+        <div class="stat"><small>Auto inserite</small><strong id="statCars">0</strong></div>
+        <div class="stat"><small>Clienti</small><strong id="statClients">0</strong></div>
+        <div class="stat"><small>Scadenze aperte</small><strong id="statDeadlines">0</strong></div>
+        <div class="stat"><small>Documenti</small><strong id="statDocs">0</strong></div>
+      </div>
 
-// Salva dati
-function saveData() {
-  localStorage.setItem('autoBroskiData', JSON.stringify(appData));
-}
+      <div class="cards-grid">
+        <div class="card">
+          <h2>Stato soglia forfettario</h2>
+          <p id="dashboardThresholdText" class="muted">Nessun dato disponibile.</p>
+        </div>
+        <div class="card">
+          <h2>Prossime scadenze</h2>
+          <div id="dashboardUpcoming" class="empty">Nessuna scadenza inserita.</div>
+        </div>
+        <div class="card">
+          <h2>Clienti da richiamare</h2>
+          <div id="dashboardRecall" class="empty">Nessun cliente da richiamare.</div>
+        </div>
+        <div class="card">
+          <h2>Margine medio auto</h2>
+          <p id="dashboardMargin" class="muted">Ancora nessuna auto con dati completi.</p>
+        </div>
+      </div>
+    </section>
 
-// Aggiorna logo
-function updateLogo() {
-  const logoEl = document.getElementById('topLogo');
-  if (appData.logo) {
-    logoEl.src = appData.logo;
-    logoEl.classList.add('visible');
-  } else {
-    logoEl.classList.remove('visible');
-  }
-}
+    <section id="page-auto" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Gestione Auto</h2>
+          <div class="form-grid two">
+            <div><label for="carModel">Marca e Modello</label><input id="carModel" placeholder="Es. Fiat Panda 1.2" /></div>
+            <div><label for="carPlate">Targa</label><input id="carPlate" placeholder="Es. AB123CD" /></div>
+            <div><label for="carBuy">Prezzo Acquisto</label><input id="carBuy" type="number" placeholder="0" /></div>
+            <div><label for="carSell">Prezzo Vendita Target</label><input id="carSell" type="number" placeholder="0" /></div>
+            <div>
+              <label for="carStatus">Stato</label>
+              <select id="carStatus">
+                <option value="da-visionare">Da visionare</option>
+                <option value="comprata">Comprata</option>
+                <option value="in-preparazione">In preparazione</option>
+                <option value="in-vendita">In vendita</option>
+                <option value="venduta">Venduta</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px"><label for="carNotes">Note</label><textarea id="carNotes" placeholder="Ripristino, difetti, osservazioni..."></textarea></div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="aggiungiAuto()">Aggiungi Auto</button></div>
+        </div>
 
-// Salva PIN
-function savePIN() {
-  const pin = document.getElementById('pinInput').value;
-  if (pin.length === 6 && /^\d+$/.test(pin)) {
-    appData.pin = pin;
-    saveData();
-    addHistory('Impostazioni', 'PIN modificato');
-    alert('PIN salvato con successo!');
-  } else {
-    alert('Inserisci un PIN valido di 6 cifre numeriche');
-  }
-}
+        <div class="card">
+          <h3>Simulatore Acquisto Auto</h3>
+          <div class="form-grid two">
+            <div><label for="dealBuy">Prezzo acquisto</label><input id="dealBuy" type="number" placeholder="0" /></div>
+            <div><label for="dealExtra">Costi aggiuntivi</label><input id="dealExtra" type="number" placeholder="0" /></div>
+            <div><label for="dealSell">Prezzo vendita stimato</label><input id="dealSell" type="number" placeholder="0" /></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="calcolaAffareAuto()">Calcola Margine</button></div>
+          <div id="dealResult" class="item-list"></div>
+        </div>
 
-// Carica logo
-function uploadLogo() {
-  const file = document.getElementById('logoUpload').files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      appData.logo = e.target.result;
-      saveData();
-      updateLogo();
-      addHistory('Impostazioni', 'Logo caricato');
-      alert('Logo caricato con successo!');
+        <div id="carsList" class="item-list"></div>
+      </div>
+    </section>
+
+    <section id="page-clienti" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Gestione Clienti</h2>
+          <div class="form-grid two">
+            <div><label for="clientName">Nome completo</label><input id="clientName" placeholder="Es. Mario Rossi" /></div>
+            <div><label for="clientPhone">Telefono</label><input id="clientPhone" type="tel" placeholder="Es. 3331234567" /></div>
+            <div><label for="clientEmail">Email</label><input id="clientEmail" type="email" placeholder="Es. cliente@email.it" /></div>
+            <div><label for="clientInterest">Interesse Auto</label><input id="clientInterest" placeholder="Es. SUV, budget 12000" /></div>
+          </div>
+          <div style="margin-top:12px"><label for="clientNotes">Note trattativa</label><textarea id="clientNotes" placeholder="Follow-up, richiamare, offerta, urgenza..."></textarea></div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="aggiungiCliente()">Aggiungi Cliente</button></div>
+        </div>
+
+        <div class="card">
+          <h3>Clienti da Richiamare</h3>
+          <div id="recallList" class="item-list"></div>
+        </div>
+
+        <div id="clientsList" class="item-list"></div>
+      </div>
+    </section>
+
+    <section id="page-scadenze" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Scadenze</h2>
+          <div class="form-grid two">
+            <div><label for="deadlineTitle">Titolo</label><input id="deadlineTitle" placeholder="Es. Versamento INPS" /></div>
+            <div><label for="deadlineDate">Data scadenza</label><input id="deadlineDate" type="date" /></div>
+            <div>
+              <label for="deadlineType">Tipo</label>
+              <select id="deadlineType">
+                <option value="fiscale">Fiscale</option>
+                <option value="auto">Auto</option>
+                <option value="cliente">Cliente</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px"><label for="deadlineDesc">Descrizione</label><textarea id="deadlineDesc" placeholder="Dettagli utili..."></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="aggiungiScadenza()">Aggiungi Scadenza</button>
+            <button class="btn btn-secondary" onclick="generaScadenzeFiscaliAnnuali()">Genera Scadenze Fiscali</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Reminder fiscali</h3>
+          <div class="tips-list muted">
+            <div>- 16 Feb / Mag / Ago / Nov: INPS trimestrale</div>
+            <div>- 30 Giugno: Dichiarazione redditi</div>
+            <div>- Giugno / Novembre: Saldo e acconto imposta sostitutiva</div>
+          </div>
+        </div>
+
+        <div id="deadlinesList" class="item-list"></div>
+      </div>
+    </section>
+
+    <section id="page-documenti" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Documenti</h2>
+          <div class="form-grid two">
+            <div><label for="docName">Nome documento</label><input id="docName" placeholder="Es. Fattura acquisto Panda" /></div>
+            <div>
+              <label for="docType">Tipo</label>
+              <select id="docType">
+                <option value="fattura">Fattura</option>
+                <option value="contratto">Contratto</option>
+                <option value="pra">PRA</option>
+                <option value="f24">F24</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px"><label for="docFile">File</label><input id="docFile" type="file" accept="image/*,application/pdf" /></div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="caricaDocumento()">Carica Documento</button></div>
+          <p class="muted">Nota: il salvataggio base64 in localStorage ha limiti, quindi usa backup frequenti oppure integra cloud sync in seguito.</p>
+        </div>
+        <div id="documentsList" class="item-list"></div>
+      </div>
+    </section>
+
+    <section id="page-link-utili" class="section-page">
+      <div class="section-inner two-col">
+        <div class="card">
+          <h2>Risorse Ufficiali Impresa</h2>
+          <div class="links-list">
+            <a href="https://impresa.italia.it" target="_blank" rel="noopener noreferrer">Impresa Italia - Cassetto Digitale</a>
+            <a href="https://www.registroimprese.it" target="_blank" rel="noopener noreferrer">Registro Imprese - Camera Commercio</a>
+            <a href="https://www.normattiva.it" target="_blank" rel="noopener noreferrer">Normattiva - Leggi e Norme</a>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Mercato Auto Usate</h2>
+          <div class="links-list">
+            <a href="https://www.autoscout24.it" target="_blank" rel="noopener noreferrer">AutoScout24</a>
+            <a href="https://www.subito.it/auto" target="_blank" rel="noopener noreferrer">Subito Auto</a>
+            <a href="https://www.automobile.it" target="_blank" rel="noopener noreferrer">Automobile.it</a>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Servizi ACI e PRA</h2>
+          <div class="links-list">
+            <a href="https://www.aci.it" target="_blank" rel="noopener noreferrer">ACI</a>
+            <a href="https://www.aci.it/servizi-online/visura-pra.html" target="_blank" rel="noopener noreferrer">Visura PRA Online</a>
+            <a href="https://www.ilportaledellautomobilista.it" target="_blank" rel="noopener noreferrer">Portale dell'Automobilista</a>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Guide Fiscali e Normative</h2>
+          <div class="links-list">
+            <a href="https://www.agenziaentrate.gov.it" target="_blank" rel="noopener noreferrer">Agenzia delle Entrate</a>
+            <a href="https://www.agenziaentrate.gov.it/portale/web/guest/schede/agevolazioni/regime-forfetario" target="_blank" rel="noopener noreferrer">Guida Regime Forfettario</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-forfettario" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Informazioni Rapide</h2>
+          <div class="tips-list">
+            <div>- Soglia ordinaria: 85.000€ annui</div>
+            <div>- Uscita immediata: oltre 100.000€</div>
+            <div>- Coefficiente commercio all'ingrosso/dettaglio: 40%</div>
+            <div>- Coefficiente intermediari commercio: 62%</div>
+            <div>- Imposta sostitutiva: 15% ordinaria, 5% agevolata</div>
+            <div>- IVA non addebitata</div>
+            <div>- IRAP non dovuta</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Guida Completa e Dettagliata</h2>
+          <div class="tips-list muted">
+            <div><strong>Accesso al regime</strong>: persone fisiche, ricavi fino a 85.000€ nell'anno precedente, con proporzionamento se l'attività parte in corso d'anno.</div>
+            <div><strong>Cause di esclusione</strong>: regimi speciali IVA, cessioni particolari, partecipazioni incompatibili, controllo società collegate, redditi dipendente oltre soglia prevista.</div>
+            <div><strong>Permanenza</strong>: monitorare ricavi, spese per personale e beni strumentali, senza vincolo triennale obbligatorio.</div>
+            <div><strong>Uscita</strong>: oltre 85.000€ esci dall'anno successivo; oltre 100.000€ uscita immediata con IVA dall'operazione che supera il limite.</div>
+            <div><strong>Calcolo reddito imponibile</strong>: ricavi × coefficiente di redditività.</div>
+            <div><strong>Contributi previdenziali</strong>: INPS deducibili dal reddito prima dell'imposta sostitutiva.</div>
+            <div><strong>Imposta sostitutiva</strong>: 15% ordinaria, 5% per nuove attività con requisiti.</div>
+            <div><strong>IVA e adempimenti</strong>: non si addebita IVA in fattura, non si detrae IVA sugli acquisti, no liquidazioni periodiche, documenti da conservare.</div>
+            <div><strong>Riferimenti normativi</strong>: Legge 190/2014 e prassi Agenzia Entrate.</div>
+            <div><strong>Consigli pratici</strong>: monitorare ricavi costantemente, conservare documenti 10 anni, confrontare spesso convenienza con ordinario.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Calcolatore Forfettario</h2>
+          <div class="form-grid two">
+            <div><label for="forfRicavi">Ricavi annui</label><input id="forfRicavi" type="number" placeholder="0" /></div>
+            <div><label for="forfCoeff">Coefficiente redditività</label><select id="forfCoeff"><option value="0.40">40%</option><option value="0.62">62%</option></select></div>
+            <div><label for="forfInps">Contributi INPS pagati</label><input id="forfInps" type="number" placeholder="0" /></div>
+            <div><label for="forfAliquota">Aliquota</label><select id="forfAliquota"><option value="0.15">15%</option><option value="0.05">5%</option></select></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="calcolaForfettario()">Calcola</button></div>
+          <div id="forfResult" class="item-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-ordinario" class="section-page">
+      <div class="section-inner">
+        <div class="card ordinario-card">
+          <h2>Informazioni Base</h2>
+          <div class="tips-list">
+            <div>- IRPEF progressiva 2026: 23% fino a 28.000€, 35% tra 28.000€ e 50.000€, 43% oltre 50.000€</div>
+            <div>- IVA ordinaria: 4%, 10%, 22%</div>
+            <div>- Deducibilità costi effettivi documentati</div>
+            <div>- Contabilità più complessa con adempimenti periodici</div>
+            <div>- IRAP potenzialmente dovuta in alcune situazioni</div>
+          </div>
+        </div>
+        <div class="card ordinario-card">
+          <h2>Quando Conviene</h2>
+          <div class="tips-list muted">
+            <div>- Molti costi deducibili o IVA detraibile</div>
+            <div>- Superamento soglia 85.000€</div>
+            <div>- Clientela B2B che preferisce fatture con IVA</div>
+            <div>- Crescita rapida dell'attività</div>
+          </div>
+        </div>
+        <div class="card ordinario-card">
+          <h2>Simulatore Regime Ordinario</h2>
+          <div class="form-grid two">
+            <div><label for="ordRicavi">Ricavi totali</label><input id="ordRicavi" type="number" placeholder="0" /></div>
+            <div><label for="ordCosti">Costi deducibili totali</label><input id="ordCosti" type="number" placeholder="0" /></div>
+            <div><label for="ordInps">Contributi INPS</label><input id="ordInps" type="number" placeholder="0" /></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-ordinario" onclick="calcolaOrdinario()">Calcola Ordinario</button></div>
+          <div id="ordResult" class="item-list"></div>
+        </div>
+        <div class="card ordinario-card">
+          <h2>Confronto Forfettario vs Ordinario</h2>
+          <p class="muted">Simula entrambi i regimi con dati reali e confronta netto finale, peso fiscale e sostenibilità nel tempo.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-consigli" class="section-page">
+      <div class="section-inner two-col">
+        <div class="card"><h2>Gestione Capitale e Liquidità</h2><div class="tips-list muted"><div>- Non bloccare capitale su una sola auto</div><div>- Mantieni liquidità per opportunità</div><div>- Calcola margine reale completo</div><div>- Considera i costi nascosti</div><div>- Verifica copertura spese fisse prima di reinvestire</div></div></div>
+        <div class="card"><h2>Documenti da Conservare</h2><div class="tips-list muted"><div>- Fatture acquisto/vendita</div><div>- Certificati proprietà e PRA</div><div>- F24 e INPS</div><div>- Contratti scritti</div><div>- Bonifici e movimenti bancari</div><div>- Foto auto prima/dopo lavori</div></div></div>
+        <div class="card"><h2>Controlli Settimanali</h2><div class="tips-list muted"><div>- Aggiorna ricavi vs soglia</div><div>- Verifica margini reali</div><div>- Aggiorna trattative</div><div>- Controlla auto ferme</div><div>- Follow-up clienti</div></div></div>
+        <div class="card"><h2>Errori da Evitare</h2><div class="tips-list muted"><div>- Non documentare correttamente</div><div>- Superare soglia senza accorgersene</div><div>- Dimenticare INPS trimestrale</div><div>- Auto ferme troppo tempo</div><div>- Non separare soldi personali e azienda</div></div></div>
+        <div class="card"><h2>Trucchetti Utili</h2><div class="tips-list muted"><div>- Storico per capire modelli redditizi</div><div>- Fotografare stato iniziale</div><div>- Excel parallelo per controllo rapido</div><div>- Verifica PRA prima acquisto</div><div>- Visura aggiornata sempre</div></div></div>
+        <div class="card"><h2>Gestione Clienti</h2><div class="tips-list muted"><div>- Segna contatti e budget</div><div>- Follow-up entro 2-3 giorni</div><div>- Evita sconti eccessivi</div><div>- Trasparenza su difetti</div><div>- Conferme scritte via WhatsApp</div></div></div>
+      </div>
+    </section>
+
+    <section id="page-ai" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Assistente Interno</h2>
+          <label for="aiQuestion">Domanda</label>
+          <textarea id="aiQuestion" placeholder="Es. Sono vicino alla soglia forfettario?"></textarea>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="setAIQuestion('Quanto posso reinvestire?')">Quanto posso reinvestire?</button>
+            <button class="btn btn-secondary" onclick="setAIQuestion('Quali auto mi rendono di più?')">Quali auto mi rendono di più?</button>
+            <button class="btn btn-secondary" onclick="setAIQuestion('Sono vicino alla soglia forfettario?')">Sono vicino alla soglia forfettario?</button>
+            <button class="btn btn-secondary" onclick="setAIQuestion('Quali clienti devo richiamare?')">Quali clienti devo richiamare?</button>
+            <button class="btn btn-secondary" onclick="setAIQuestion('Prossime scadenze?')">Prossime scadenze?</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="chiediAI()">Chiedi AI</button>
+            <button class="btn btn-secondary" onclick="copiaPromptAvanzato()">Copia Prompt</button>
+          </div>
+          <div id="aiAnswer" class="item-list"></div>
+          <div style="margin-top:12px"><label for="aiPromptPreview">Preview prompt avanzato</label><textarea id="aiPromptPreview" readonly></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-impostazioni" class="section-page">
+      <div class="section-inner">
+        <div class="card">
+          <h2>Impostazioni</h2>
+          <div class="form-grid two">
+            <div><label for="nomeAttivita">Nome attività</label><input id="nomeAttivita" placeholder="AutoBroskiGroup" /></div>
+            <div><label for="partitaIva">Partita IVA</label><input id="partitaIva" placeholder="Es. 12345678901" /></div>
+            <div><label for="codiceAteco">Codice ATECO</label><input id="codiceAteco" placeholder="Es. 45.11.01" /></div>
+            <div><label for="newPin">PIN (6 cifre)</label><input id="newPin" maxlength="6" placeholder="845620" /></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="salvaImpostazioniBase()">Salva Dati Attività</button>
+            <button class="btn btn-secondary" onclick="salvaPin()">Salva PIN</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Logo Personalizzabile</h3>
+          <input id="logoInput" type="file" accept="image/*" />
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="uploadLogo()">Carica Logo</button>
+            <button class="btn btn-danger" onclick="removeLogo()">Rimuovi Logo</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Backup e Ripristino</h3>
+          <p class="muted">Fai backup regolari per non perdere dati.</p>
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="esportaJSON()">Esporta JSON</button>
+            <button class="btn btn-secondary" onclick="esportaCSV('cars')">Esporta CSV Auto</button>
+            <button class="btn btn-secondary" onclick="esportaCSV('clients')">Esporta CSV Clienti</button>
+            <label class="btn btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;">
+              Importa JSON
+              <input id="importJsonInput" type="file" accept="application/json" style="display:none" onchange="importaJSON(this.files[0])" />
+            </label>
+            <button class="btn btn-danger" onclick="clearCache()">Clear Cache</button>
+          </div>
+          <p class="muted">Modalità attuale: Locale. Cloud sync da integrare con cloud-sync.js e config.js.</p>
+        </div>
+
+        <div class="card">
+          <h3>Ultime modifiche</h3>
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let appData = {
+      pin: '845620',
+      logo: '',
+      nomeAttivita: 'AutoBroskiGroup',
+      partitaIva: '',
+      codiceAteco: '',
+      cars: [],
+      clients: [],
+      deadlines: [],
+      documents: [],
+      history: [],
+      settings: {
+        theme: 'dark',
+        lastBackupDate: '',
+        autosaveMs: 1200
+      }
     };
-    reader.readAsDataURL(file);
-  }
-}
 
-// Aggiungi a cronologia
-function addHistory(type, action) {
-  const entry = {
-    date: new Date().toLocaleString('it-IT'),
-    type: type,
-    action: action
-  };
-  appData.history.unshift(entry);
-  if (appData.history.length > 50) appData.history.pop();
-  saveData();
-  updateHistory();
-}
+    const STORAGE_KEY = 'autoBroskiData';
+    let saveTimer = null;
 
-// Aggiorna visualizzazione cronologia
-function updateHistory() {
-  const historyEl = document.getElementById('historyList');
-  if (appData.history.length === 0) {
-    historyEl.innerHTML = '<p>Nessuna modifica registrata</p>';
-  } else {
-    historyEl.innerHTML = appData.history.slice(0, 10).map(h => 
-      `<p style="font-size:12px;margin:8px 0;"><strong>${h.date}</strong> - ${h.type}: ${h.action}</p>`
-    ).join('');
-  }
-}
-
-// Navigazione
-function openPage(pageName) {
-  // Nascondi tutte le pagine
-  document.getElementById('homePage').style.display = 'none';
-  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-  
-  // Rimuovi active da menu
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-  
-  if (pageName === 'home') {
-    document.getElementById('homePage').style.display = 'block';
-    document.getElementById('btnHome').classList.remove('visible');
-  } else {
-    const pageEl = document.getElementById(pageName + 'Page');
-    if (pageEl) {
-      pageEl.classList.add('active');
-      document.getElementById('btnHome').classList.add('visible');
+    function sanitize(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
     }
-    // Attiva menu item
-    const menuItem = document.querySelector(`[data-page="${pageName}"]`);
-    if (menuItem) menuItem.classList.add('active');
-  }
-  
-  currentPage = pageName;
-  closeMenu();
-}
 
-// Menu hamburger
-function toggleMenu() {
-  const hamburger = document.getElementById('hamburger');
-  const overlay = document.getElementById('menuOverlay');
-  const drawer = document.getElementById('menuDrawer');
-  
-  hamburger.classList.toggle('open');
-  overlay.classList.toggle('open');
-  drawer.classList.toggle('open');
-}
-
-function closeMenu() {
-  const hamburger = document.getElementById('hamburger');
-  const overlay = document.getElementById('menuOverlay');
-  const drawer = document.getElementById('menuDrawer');
-  
-  hamburger.classList.remove('open');
-  overlay.classList.remove('open');
-  drawer.classList.remove('open');
-}
-
-// Event listeners
-document.getElementById('hamburger').addEventListener('click', toggleMenu);
-document.getElementById('menuOverlay').addEventListener('click', closeMenu);
-document.getElementById('btnHome').addEventListener('click', () => openPage('home'));
-
-document.querySelectorAll('.menu-item').forEach(item => {
-  item.addEventListener('click', function() {
-    const page = this.getAttribute('data-page');
-    openPage(page);
-  });
-});
-
-// Inizializzazione
-loadData();
-updateHistory();
-
-// Check URL hash al caricamento
-window.addEventListener('load', function() {
-  const hash = window.location.hash.substring(1);
-  if (hash) {
-    openPage(hash);
-  }
-});
-
-// Aggiorna hash quando cambi pagina
-function openPage(pageName) {
-  // Nascondi tutte le pagine
-  document.getElementById('homePage').style.display = 'none';
-  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-  
-  // Rimuovi active da menu
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-  
-  if (pageName === 'home') {
-    document.getElementById('homePage').style.display = 'block';
-    document.getElementById('btnHome').classList.remove('visible');
-    window.location.hash = '';
-  } else {
-    const pageEl = document.getElementById(pageName + 'Page');
-    if (pageEl) {
-      pageEl.classList.add('active');
-      document.getElementById('btnHome').classList.add('visible');
+    function showToast(message, type = 'info') {
+      const wrap = document.getElementById('toastWrap');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = message;
+      wrap.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
     }
-    // Attiva menu item
-    const menuItem = document.querySelector(`[data-page="${pageName}"]`);
-    if (menuItem) menuItem.classList.add('active');
-    window.location.hash = pageName;
-  }
-  
-  currentPage = pageName;
-  closeMenu();
-}
-</script>
 
+    function migrateData(data) {
+      if (!data.history) data.history = [];
+      if (!data.logo) data.logo = '';
+      if (!data.pin) data.pin = '845620';
+      if (!data.nomeAttivita) data.nomeAttivita = 'AutoBroskiGroup';
+      if (!data.partitaIva) data.partitaIva = '';
+      if (!data.codiceAteco) data.codiceAteco = '';
+      if (!Array.isArray(data.cars)) data.cars = [];
+      if (!Array.isArray(data.clients)) data.clients = [];
+      if (!Array.isArray(data.deadlines)) data.deadlines = [];
+      if (!Array.isArray(data.documents)) data.documents = [];
+      if (!data.settings) data.settings = {};
+      if (!data.settings.theme) data.settings.theme = 'dark';
+      if (!data.settings.lastBackupDate) data.settings.lastBackupDate = '';
+      if (!data.settings.autosaveMs) data.settings.autosaveMs = 1200;
+      return data;
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        appData = migrateData({ ...appData, ...parsed });
+      } catch (err) {
+        showToast('Errore lettura dati locali', 'error');
+      }
+    }
+
+    function persistNow() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      } catch (err) {
+        showToast('Storage pieno o non disponibile', 'error');
+      }
+    }
+
+    function saveData(immediate = false) {
+      if (immediate) {
+        persistNow();
+        postSaveRefresh();
+        return;
+      }
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        persistNow();
+        postSaveRefresh();
+      }, appData.settings.autosaveMs || 1200);
+    }
+
+    function postSaveRefresh() {
+      updateDashboard();
+      renderAll();
+      updateBackupReminder();
+    }
+
+    function addHistory(type, action) {
+      appData.history.unshift({ date: new Date().toLocaleString('it-IT'), type, action });
+      appData.history = appData.history.slice(0, 100);
+    }
+
+    function updateLogo() {
+      const img = document.getElementById('topLogo');
+      if (appData.logo) {
+        img.src = appData.logo;
+        img.style.display = 'block';
+      } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+      }
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      if (theme === 'light') {
+        document.documentElement.style.setProperty('--bg', '#f4f4f8');
+        document.documentElement.style.setProperty('--surface', '#ffffff');
+        document.documentElement.style.setProperty('--surface2', '#f0f0f7');
+        document.documentElement.style.setProperty('--surface3', '#e8e8f2');
+        document.documentElement.style.setProperty('--text', '#12121a');
+        document.documentElement.style.setProperty('--text2', '#666680');
+      } else {
+        document.documentElement.style.setProperty('--bg', '#0a0a0f');
+        document.documentElement.style.setProperty('--surface', '#13131a');
+        document.documentElement.style.setProperty('--surface2', '#1a1a24');
+        document.documentElement.style.setProperty('--surface3', '#20202d');
+        document.documentElement.style.setProperty('--text', '#e8e8f0');
+        document.documentElement.style.setProperty('--text2', '#9090b0');
+      }
+    }
+
+    function toggleMenu(force) {
+      const drawer = document.getElementById('menuDrawer');
+      const overlay = document.getElementById('menuOverlay');
+      const next = typeof force === 'boolean' ? force : !drawer.classList.contains('show');
+      drawer.classList.toggle('show', next);
+      overlay.classList.toggle('show', next);
+    }
+
+    function openPage(pageName) {
+      document.querySelectorAll('.section-page').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+      const homeBtn = document.getElementById('homeBtn');
+      if (!pageName || pageName === 'dashboard') {
+        homeBtn.style.display = 'none';
+        history.replaceState(null, '', '#/dashboard');
+      } else {
+        const target = document.getElementById('page-' + pageName);
+        if (target) {
+          target.classList.add('active');
+          homeBtn.style.display = 'inline-flex';
+          history.replaceState(null, '', '#/' + pageName);
+          const btn = document.querySelector(`.menu-item[data-page="${pageName}"]`);
+          if (btn) btn.classList.add('active');
+        }
+      }
+      toggleMenu(false);
+    }
+
+    function updateDashboard() {
+      document.getElementById('statCars').textContent = appData.cars.length;
+      document.getElementById('statClients').textContent = appData.clients.length;
+      document.getElementById('statDeadlines').textContent = appData.deadlines.filter(d => !d.completed).length;
+      document.getElementById('statDocs').textContent = appData.documents.length;
+
+      const ricaviVenduto = appData.cars.filter(c => c.status === 'venduta').reduce((sum, c) => sum + (Number(c.sellPrice) || 0), 0);
+      const pct = ricaviVenduto > 0 ? (ricaviVenduto / 85000) * 100 : 0;
+      const distanza = 85000 - ricaviVenduto;
+      document.getElementById('dashboardThresholdText').innerHTML = ricaviVenduto
+        ? `Ricavi da auto vendute: <strong>${ricaviVenduto.toFixed(2)}€</strong> · ${pct.toFixed(1)}% della soglia forfettario · residuo teorico <strong>${distanza.toFixed(2)}€</strong>.`
+        : 'Ancora nessun ricavo da auto vendute registrato.';
+
+      const prossime = [...appData.deadlines].filter(d => !d.completed).sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0,3);
+      document.getElementById('dashboardUpcoming').innerHTML = prossime.length
+        ? prossime.map(d => `<div class="meta">${sanitize(d.title)} · ${sanitize(d.date)}</div>`).join('')
+        : '<div class="empty">Nessuna scadenza inserita.</div>';
+
+      const daRichiamare = appData.clients.filter(c => /richiamare|follow-up/i.test(c.notes || '')).slice(0,3);
+      document.getElementById('dashboardRecall').innerHTML = daRichiamare.length
+        ? daRichiamare.map(c => `<div class="meta">${sanitize(c.name)} · ${sanitize(c.interest || 'nessun interesse indicato')}</div>`).join('')
+        : '<div class="empty">Nessun cliente da richiamare.</div>';
+
+      const completi = appData.cars.filter(c => Number(c.buyPrice) > 0 && Number(c.sellPrice) > 0);
+      if (!completi.length) document.getElementById('dashboardMargin').textContent = 'Ancora nessuna auto con dati completi.';
+      else {
+        const avg = completi.reduce((sum,c) => sum + (((Number(c.sellPrice)-Number(c.buyPrice))/Number(c.sellPrice||1))*100), 0) / completi.length;
+        document.getElementById('dashboardMargin').innerHTML = `Margine medio stimato: <strong>${avg.toFixed(1)}%</strong>.`;
+      }
+    }
+
+    function aggiungiAuto() {
+      const model = document.getElementById('carModel').value.trim();
+      const plate = document.getElementById('carPlate').value.trim();
+      if (!model || !plate) return showToast('Inserisci almeno modello e targa', 'error');
+      appData.cars.unshift({
+        id: Date.now(), model, plate,
+        buyPrice: Number(document.getElementById('carBuy').value || 0),
+        sellPrice: Number(document.getElementById('carSell').value || 0),
+        status: document.getElementById('carStatus').value,
+        notes: document.getElementById('carNotes').value.trim(),
+        createdAt: new Date().toLocaleString('it-IT')
+      });
+      addHistory('Auto', 'Aggiunta auto: ' + model + ' (' + plate + ')');
+      ['carModel','carPlate','carBuy','carSell','carNotes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('carStatus').value = 'da-visionare';
+      saveData();
+      showToast('Auto aggiunta', 'success');
+    }
+
+    function eliminaAuto(id) {
+      if (!confirm('Eliminare questa auto?')) return;
+      appData.cars = appData.cars.filter(c => c.id !== id);
+      addHistory('Auto', 'Eliminata auto ID ' + id);
+      saveData();
+      showToast('Auto eliminata', 'info');
+    }
+
+    function renderAuto() {
+      const box = document.getElementById('carsList');
+      if (!appData.cars.length) {
+        box.innerHTML = '<div class="card empty">Nessuna auto inserita. Inizia aggiungendo la prima!</div>';
+        return;
+      }
+      box.innerHTML = appData.cars.map(c => {
+        const buy = Number(c.buyPrice || 0);
+        const sell = Number(c.sellPrice || 0);
+        const margin = sell - buy;
+        const pct = sell > 0 ? (margin / sell) * 100 : 0;
+        let badgeClass = 'orange';
+        if (pct > 15) badgeClass = 'green';
+        else if (pct < 5) badgeClass = 'red';
+        return `<div class="list-card">
+          <h4>${sanitize(c.model)}</h4>
+          <div class="meta">Targa: ${sanitize(c.plate)} · Inserita: ${sanitize(c.createdAt)}</div>
+          <div class="btn-row"><span class="badge purple">${sanitize(c.status)}</span><span class="badge ${badgeClass}">Margine: ${margin.toFixed(2)}€ (${pct.toFixed(1)}%)</span></div>
+          <p>Acquisto: <strong>${buy.toFixed(2)}€</strong> · Vendita target: <strong>${sell.toFixed(2)}€</strong></p>
+          ${c.notes ? `<p class="muted">${sanitize(c.notes)}</p>` : ''}
+          <div class="btn-row"><button class="btn btn-danger" onclick="eliminaAuto(${c.id})">Elimina</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    function calcolaAffareAuto() {
+      const prezzoAcquisto = Number(document.getElementById('dealBuy').value || 0);
+      const costiAggiuntivi = Number(document.getElementById('dealExtra').value || 0);
+      const prezzoVendita = Number(document.getElementById('dealSell').value || 0);
+      const costoTotale = prezzoAcquisto + costiAggiuntivi;
+      const margine = prezzoVendita - costoTotale;
+      const marginePercentuale = prezzoVendita > 0 ? (margine / prezzoVendita) * 100 : 0;
+      let cls = 'orange';
+      if (marginePercentuale > 15) cls = 'green';
+      else if (marginePercentuale < 5) cls = 'red';
+      document.getElementById('dealResult').innerHTML = `
+        <div class="list-card"><strong>Costo totale:</strong> ${costoTotale.toFixed(2)}€</div>
+        <div class="list-card"><strong>Ricavo vendita:</strong> ${prezzoVendita.toFixed(2)}€</div>
+        <div class="list-card"><strong>Margine netto:</strong> ${margine.toFixed(2)}€ · <span class="badge ${cls}">${marginePercentuale.toFixed(1)}%</span></div>
+        ${margine < 0 ? '<div class="list-card"><span class="badge red">Attenzione: margine negativo</span></div>' : ''}`;
+    }
+
+    function aggiungiCliente() {
+      const name = document.getElementById('clientName').value.trim();
+      if (!name) return showToast('Inserisci almeno il nome del cliente', 'error');
+      appData.clients.unshift({
+        id: Date.now(),
+        name,
+        phone: document.getElementById('clientPhone').value.trim(),
+        email: document.getElementById('clientEmail').value.trim(),
+        interest: document.getElementById('clientInterest').value.trim(),
+        notes: document.getElementById('clientNotes').value.trim(),
+        createdAt: new Date().toLocaleString('it-IT')
+      });
+      addHistory('Clienti', 'Aggiunto cliente: ' + name);
+      ['clientName','clientPhone','clientEmail','clientInterest','clientNotes'].forEach(id => document.getElementById(id).value = '');
+      saveData();
+      showToast('Cliente aggiunto', 'success');
+    }
+
+    function eliminaCliente(id) {
+      if (!confirm('Eliminare questo cliente?')) return;
+      appData.clients = appData.clients.filter(c => c.id !== id);
+      addHistory('Clienti', 'Eliminato cliente ID ' + id);
+      saveData();
+      showToast('Cliente eliminato', 'info');
+    }
+
+    function renderClienti() {
+      const box = document.getElementById('clientsList');
+      const recall = document.getElementById('recallList');
+      if (!appData.clients.length) box.innerHTML = '<div class="card empty">Nessun cliente inserito.</div>';
+      else {
+        box.innerHTML = appData.clients.map(c => {
+          const notes = (c.notes || '').toLowerCase();
+          const hot = /(calda|interessato|subito|urgente)/i.test(notes);
+          const toRecall = /(richiamare|follow-up)/i.test(notes);
+          return `<div class="list-card">
+            <h4>${sanitize(c.name)}</h4>
+            <div class="meta">${sanitize(c.phone || 'Nessun telefono')} · ${sanitize(c.email || 'Nessuna email')}</div>
+            <div class="btn-row">${hot ? '<span class="badge red">Trattativa Calda</span>' : ''}${toRecall ? '<span class="badge orange">Da Richiamare</span>' : ''}</div>
+            <p>Interesse: <strong>${sanitize(c.interest || 'Non indicato')}</strong></p>
+            ${c.notes ? `<p class="muted">${sanitize(c.notes)}</p>` : ''}
+            <div class="btn-row"><button class="btn btn-danger" onclick="eliminaCliente(${c.id})">Elimina</button></div>
+          </div>`;
+        }).join('');
+      }
+
+      const daRichiamare = appData.clients.filter(c => /(richiamare|follow-up)/i.test(c.notes || ''));
+      recall.innerHTML = daRichiamare.length ? daRichiamare.map(c => `<div class="list-card"><strong>${sanitize(c.name)}</strong><div class="meta">${sanitize(c.phone || '')}</div><p class="muted">${sanitize(c.notes || '')}</p></div>`).join('') : '<div class="empty">Nessun cliente da richiamare.</div>';
+    }
+
+    function aggiungiScadenza() {
+      const title = document.getElementById('deadlineTitle').value.trim();
+      const date = document.getElementById('deadlineDate').value;
+      if (!title || !date) return showToast('Inserisci titolo e data', 'error');
+      appData.deadlines.unshift({
+        id: Date.now(), title, date,
+        type: document.getElementById('deadlineType').value,
+        description: document.getElementById('deadlineDesc').value.trim(),
+        completed: false
+      });
+      addHistory('Scadenze', 'Aggiunta scadenza: ' + title);
+      ['deadlineTitle','deadlineDate','deadlineDesc'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('deadlineType').value = 'fiscale';
+      saveData();
+      showToast('Scadenza aggiunta', 'success');
+    }
+
+    function completaScadenza(id) {
+      const d = appData.deadlines.find(x => x.id === id);
+      if (!d) return;
+      d.completed = true;
+      addHistory('Scadenze', 'Completata scadenza: ' + d.title);
+      saveData();
+      showToast('Scadenza completata', 'success');
+    }
+
+    function eliminaScadenza(id) {
+      if (!confirm('Eliminare questa scadenza?')) return;
+      appData.deadlines = appData.deadlines.filter(d => d.id !== id);
+      addHistory('Scadenze', 'Eliminata scadenza ID ' + id);
+      saveData();
+      showToast('Scadenza eliminata', 'info');
+    }
+
+    function renderScadenze() {
+      const box = document.getElementById('deadlinesList');
+      if (!appData.deadlines.length) {
+        box.innerHTML = '<div class="card empty">Nessuna scadenza inserita.</div>';
+        return;
+      }
+      const today = new Date();
+      const sorted = [...appData.deadlines].sort((a,b) => new Date(a.date) - new Date(b.date));
+      box.innerHTML = sorted.map(d => {
+        const diff = Math.ceil((new Date(d.date) - today) / 86400000);
+        let badge = '<span class="badge blue">Futura</span>';
+        if (d.completed) badge = '<span class="badge green">Completata</span>';
+        else if (diff < 0) badge = '<span class="badge red">Scaduta</span>';
+        else if (diff <= 7) badge = `<span class="badge orange">Tra ${diff} giorni</span>`;
+        return `<div class="list-card">
+          <h4>${sanitize(d.title)}</h4>
+          <div class="meta">${sanitize(d.type)} · ${sanitize(d.date)}</div>
+          <div class="btn-row">${badge}</div>
+          ${d.description ? `<p class="muted">${sanitize(d.description)}</p>` : ''}
+          <div class="btn-row">${!d.completed ? `<button class="btn btn-success" onclick="completaScadenza(${d.id})">Completa</button>` : ''}<button class="btn btn-danger" onclick="eliminaScadenza(${d.id})">Elimina</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    function generaScadenzeFiscaliAnnuali() {
+      const year = new Date().getFullYear();
+      const preset = [
+        { title: 'INPS Trimestrale 1', date: `${year}-02-16`, type: 'fiscale' },
+        { title: 'INPS Trimestrale 2', date: `${year}-05-16`, type: 'fiscale' },
+        { title: 'INPS Trimestrale 3', date: `${year}-08-16`, type: 'fiscale' },
+        { title: 'INPS Trimestrale 4', date: `${year}-11-16`, type: 'fiscale' },
+        { title: 'Dichiarazione Redditi', date: `${year}-06-30`, type: 'fiscale' },
+        { title: 'Saldo/Acconto Imposta', date: `${year}-11-30`, type: 'fiscale' }
+      ];
+      preset.forEach(p => {
+        if (!appData.deadlines.some(d => d.title === p.title && d.date === p.date)) {
+          appData.deadlines.push({ id: Date.now() + Math.random(), title: p.title, date: p.date, type: p.type, description: 'Scadenza fiscale generata automaticamente', completed: false });
+        }
+      });
+      addHistory('Scadenze', 'Generate scadenze fiscali annuali');
+      saveData();
+      showToast('Scadenze fiscali generate', 'success');
+    }
+
+    function caricaDocumento() {
+      const name = document.getElementById('docName').value.trim();
+      const file = document.getElementById('docFile').files[0];
+      if (!name || !file) return showToast('Inserisci nome documento e file', 'error');
+      if (!(file.type.startsWith('image/') || file.type === 'application/pdf')) return showToast('Carica solo immagini o PDF', 'error');
+      if (file.size > 5 * 1024 * 1024) return showToast('Il file supera 5MB', 'error');
+      const reader = new FileReader();
+      reader.onload = e => {
+        appData.documents.unshift({
+          id: Date.now(),
+          name,
+          type: document.getElementById('docType').value,
+          fileName: file.name,
+          fileType: file.type,
+          data: e.target.result,
+          createdAt: new Date().toLocaleString('it-IT')
+        });
+        addHistory('Documenti', 'Caricato documento: ' + name);
+        document.getElementById('docName').value = '';
+        document.getElementById('docFile').value = '';
+        document.getElementById('docType').value = 'fattura';
+        saveData();
+        showToast('Documento caricato', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function visualizzaDocumento(id) {
+      const doc = appData.documents.find(d => d.id === id);
+      if (!doc) return;
+      window.open(doc.data, '_blank');
+    }
+
+    function eliminaDocumento(id) {
+      if (!confirm('Eliminare questo documento?')) return;
+      appData.documents = appData.documents.filter(d => d.id !== id);
+      addHistory('Documenti', 'Eliminato documento ID ' + id);
+      saveData();
+      showToast('Documento eliminato', 'info');
+    }
+
+    function renderDocumenti() {
+      const box = document.getElementById('documentsList');
+      if (!appData.documents.length) {
+        box.innerHTML = '<div class="card empty">Nessun documento caricato.</div>';
+        return;
+      }
+      box.innerHTML = appData.documents.map(d => `<div class="list-card">
+        <h4>${sanitize(d.name)}</h4>
+        <div class="meta">${sanitize(d.type)} · ${sanitize(d.fileName)} · ${sanitize(d.createdAt)}</div>
+        <div class="btn-row"><button class="btn btn-secondary" onclick="visualizzaDocumento(${d.id})">Visualizza</button><button class="btn btn-danger" onclick="eliminaDocumento(${d.id})">Elimina</button></div>
+      </div>`).join('');
+    }
+
+    function calcolaForfettario() {
+      const ricavi = Number(document.getElementById('forfRicavi').value || 0);
+      const coeff = Number(document.getElementById('forfCoeff').value || 0.40);
+      const inps = Number(document.getElementById('forfInps').value || 0);
+      const aliquota = Number(document.getElementById('forfAliquota').value || 0.15);
+      const redditoImponibile = ricavi * coeff;
+      const baseImponibile = Math.max(0, redditoImponibile - inps);
+      const impostaSostitutiva = baseImponibile * aliquota;
+      const nettoFinale = ricavi - inps - impostaSostitutiva;
+      const percentuale = ricavi > 0 ? (nettoFinale / ricavi) * 100 : 0;
+      document.getElementById('forfResult').innerHTML = `
+        <div class="list-card"><strong>Reddito imponibile:</strong> ${redditoImponibile.toFixed(2)}€</div>
+        <div class="list-card"><strong>Base imponibile:</strong> ${baseImponibile.toFixed(2)}€</div>
+        <div class="list-card"><strong>Imposta sostitutiva:</strong> ${impostaSostitutiva.toFixed(2)}€</div>
+        <div class="list-card"><strong>Netto finale:</strong> ${nettoFinale.toFixed(2)}€</div>
+        <div class="list-card"><strong>Percentuale sul ricavo:</strong> ${percentuale.toFixed(1)}%</div>`;
+    }
+
+    function calcolaOrdinario() {
+      const ricavi = Number(document.getElementById('ordRicavi').value || 0);
+      const costi = Number(document.getElementById('ordCosti').value || 0);
+      const contributiINPS = Number(document.getElementById('ordInps').value || 0);
+      const ivaVendite = ricavi * 0.22;
+      const ivaAcquisti = costi * 0.22;
+      const saldoIVA = ivaVendite - ivaAcquisti;
+      const redditoImponibile = Math.max(0, ricavi - costi - contributiINPS);
+      let irpef = 0;
+      if (redditoImponibile <= 28000) irpef = redditoImponibile * 0.23;
+      else if (redditoImponibile <= 50000) irpef = 28000 * 0.23 + (redditoImponibile - 28000) * 0.35;
+      else irpef = 28000 * 0.23 + 22000 * 0.35 + (redditoImponibile - 50000) * 0.43;
+      const totaleTasse = irpef + saldoIVA;
+      const nettoFinale = ricavi - costi - contributiINPS - totaleTasse;
+      const pct = ricavi > 0 ? (nettoFinale / ricavi) * 100 : 0;
+      document.getElementById('ordResult').innerHTML = `
+        <div class="list-card"><strong>IVA su vendite:</strong> ${ivaVendite.toFixed(2)}€</div>
+        <div class="list-card"><strong>IVA su acquisti:</strong> ${ivaAcquisti.toFixed(2)}€</div>
+        <div class="list-card"><strong>Saldo IVA da versare:</strong> ${saldoIVA.toFixed(2)}€</div>
+        <div class="list-card"><strong>Reddito imponibile:</strong> ${redditoImponibile.toFixed(2)}€</div>
+        <div class="list-card"><strong>IRPEF:</strong> ${irpef.toFixed(2)}€</div>
+        <div class="list-card"><strong>Totale tasse:</strong> ${totaleTasse.toFixed(2)}€</div>
+        <div class="list-card"><strong>Netto finale:</strong> ${nettoFinale.toFixed(2)}€ (${pct.toFixed(1)}%)</div>`;
+    }
+
+    function setAIQuestion(text) {
+      document.getElementById('aiQuestion').value = text;
+      updatePromptPreview();
+    }
+
+    function chiediAI() {
+      const domanda = (document.getElementById('aiQuestion').value || '').toLowerCase();
+      const ricaviTotali = appData.cars.filter(c => c.status === 'venduta').reduce((sum, c) => sum + (Number(c.sellPrice) || 0), 0);
+      const distanzaSoglia = 85000 - ricaviTotali;
+      const percentualeSoglia = 85000 > 0 ? (ricaviTotali / 85000) * 100 : 0;
+      const recall = appData.clients.filter(c => /(richiamare|follow-up)/i.test(c.notes || '')).map(c => c.name);
+      const nextDeadlines = [...appData.deadlines].filter(d => !d.completed).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+      let risposta = 'Analisi non disponibile per questa domanda.';
+      if (domanda.includes('soglia') || domanda.includes('forfettario')) {
+        risposta = `Hai generato ${ricaviTotali.toFixed(2)}€ di ricavi, pari al ${percentualeSoglia.toFixed(1)}% della soglia. Ti restano circa ${distanzaSoglia.toFixed(2)}€ prima di 85.000€.`;
+      } else if (domanda.includes('richiamare') || domanda.includes('clienti')) {
+        risposta = recall.length ? `Clienti da richiamare: ${recall.join(', ')}.` : 'Non risultano clienti da richiamare.';
+      } else if (domanda.includes('scadenze')) {
+        risposta = nextDeadlines.length ? 'Prossime scadenze: ' + nextDeadlines.map(d => `${d.title} (${d.date})`).join(', ') : 'Non risultano scadenze imminenti.';
+      } else if (domanda.includes('auto') || domanda.includes('rendono')) {
+        const migliori = [...appData.cars].map(c => ({ ...c, margin: (Number(c.sellPrice)||0) - (Number(c.buyPrice)||0) })).sort((a,b)=>b.margin-a.margin).slice(0,3);
+        risposta = migliori.length ? 'Auto con margine migliore: ' + migliori.map(c => `${c.model} (${c.margin.toFixed(2)}€)`).join(', ') : 'Dati insufficienti per confrontare le auto.';
+      } else if (domanda.includes('reinvestire')) {
+        const margineTotale = appData.cars.filter(c => c.status === 'venduta').reduce((sum,c)=>sum+((Number(c.sellPrice)||0)-(Number(c.buyPrice)||0)),0);
+        risposta = `Il margine totale stimato sulle auto vendute è ${margineTotale.toFixed(2)}€. Prima di reinvestire considera tasse, INPS e scadenze aperte.`;
+      }
+      document.getElementById('aiAnswer').innerHTML = `<div class="list-card"><p>${sanitize(risposta)}</p></div>`;
+      updatePromptPreview();
+    }
+
+    function updatePromptPreview() {
+      const ricaviTotali = appData.cars.filter(c => c.status === 'venduta').reduce((sum, c) => sum + (Number(c.sellPrice) || 0), 0);
+      const autoVendita = appData.cars.filter(c => c.status === 'in-vendita').length;
+      const avgItems = appData.cars.filter(c => Number(c.buyPrice) > 0 && Number(c.sellPrice) > 0);
+      const avgMargin = avgItems.length ? avgItems.reduce((sum,c)=>sum+((((Number(c.sellPrice)-Number(c.buyPrice))/Number(c.sellPrice||1))*100)),0)/avgItems.length : 0;
+      const prossime = [...appData.deadlines].filter(d => !d.completed).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,5).map(d => `${d.title} (${d.date})`).join(', ');
+      const domanda = document.getElementById('aiQuestion').value || '[domanda utente]';
+      document.getElementById('aiPromptPreview').value = `Sei un assistente per la gestione di un'attività di rivendita auto in regime forfettario.\n\nDATI ATTIVITÀ:\n- Ricavi totali: €${ricaviTotali.toFixed(2)}\n- Auto in vendita: ${autoVendita}\n- Margine medio: ${avgMargin.toFixed(1)}%\n- Prossime scadenze: ${prossime || 'nessuna'}\n\nDOMANDA UTENTE:\n${domanda}\n\nFornisci un'analisi dettagliata e consigli operativi.`;
+    }
+
+    function copiaPromptAvanzato() {
+      updatePromptPreview();
+      navigator.clipboard.writeText(document.getElementById('aiPromptPreview').value);
+      showToast('Prompt copiato', 'success');
+    }
+
+    function salvaImpostazioniBase() {
+      appData.nomeAttivita = document.getElementById('nomeAttivita').value.trim() || 'AutoBroskiGroup';
+      appData.partitaIva = document.getElementById('partitaIva').value.trim();
+      appData.codiceAteco = document.getElementById('codiceAteco').value.trim();
+      document.querySelector('.brand').textContent = appData.nomeAttivita;
+      addHistory('Impostazioni', 'Dati attività aggiornati');
+      saveData();
+      showToast('Impostazioni salvate', 'success');
+    }
+
+    function salvaPin() {
+      const pin = document.getElementById('newPin').value.trim();
+      if (!/^\d{6}$/.test(pin)) return showToast('Il PIN deve essere di 6 cifre numeriche', 'error');
+      appData.pin = pin;
+      addHistory('Impostazioni', 'PIN modificato');
+      saveData();
+      showToast('PIN salvato', 'success');
+    }
+
+    function uploadLogo() {
+      const file = document.getElementById('logoInput').files[0];
+      if (!file) return showToast('Seleziona un logo', 'error');
+      if (!file.type.startsWith('image/')) return showToast('Il file deve essere un’immagine', 'error');
+      if (file.size > 2 * 1024 * 1024) return showToast('Il logo supera 2MB', 'error');
+      const reader = new FileReader();
+      reader.onload = e => {
+        appData.logo = e.target.result;
+        addHistory('Impostazioni', 'Logo aggiornato');
+        saveData();
+        showToast('Logo caricato', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeLogo() {
+      appData.logo = '';
+      addHistory('Impostazioni', 'Logo rimosso');
+      saveData();
+      showToast('Logo rimosso', 'info');
+    }
+
+    function updateHistory() {
+      const box = document.getElementById('historyList');
+      const items = appData.history.slice(0, 10);
+      box.innerHTML = items.length ? items.map(h => `<div class="history-item"><strong>${sanitize(h.type)}</strong> · ${sanitize(h.action)}<br><span class="muted">${sanitize(h.date)}</span></div>`).join('') : '<div class="empty">Nessuna modifica registrata.</div>';
+    }
+
+    function esportaJSON() {
+      const dataStr = JSON.stringify(appData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `AutoBroskiGroup-backup-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      appData.settings.lastBackupDate = new Date().toISOString();
+      addHistory('Sistema', 'Dati esportati');
+      saveData(true);
+      showToast('Backup JSON esportato', 'success');
+    }
+
+    function importaJSON(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (confirm('Importare questi dati? I dati attuali verranno sovrascritti.')) {
+            appData = migrateData({ ...appData, ...imported });
+            addHistory('Sistema', 'Dati importati');
+            saveData(true);
+            showToast('Dati importati con successo', 'success');
+            setTimeout(() => location.reload(), 700);
+          }
+        } catch (err) {
+          showToast('Errore: file JSON non valido', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function esportaCSV(type) {
+      let rows = [];
+      if (type === 'cars') {
+        rows = [['modello','targa','acquisto','vendita','stato','margine']].concat(appData.cars.map(c => [c.model, c.plate, c.buyPrice, c.sellPrice, c.status, (Number(c.sellPrice||0)-Number(c.buyPrice||0)).toFixed(2)]));
+      } else if (type === 'clients') {
+        rows = [['nome','telefono','email','interesse','note']].concat(appData.clients.map(c => [c.name, c.phone, c.email, c.interest, c.notes]));
+      }
+      const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addHistory('Sistema', `Export CSV ${type}`);
+      saveData();
+      showToast('CSV esportato', 'success');
+    }
+
+    function clearCache() {
+      if (!confirm('Vuoi cancellare tutti i dati locali?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      showToast('Cache cancellata', 'info');
+      setTimeout(() => location.reload(), 500);
+    }
+
+    function updateBackupReminder() {
+      const banner = document.getElementById('backupReminder');
+      const last = appData.settings.lastBackupDate;
+      if (!last) {
+        banner.textContent = 'Promemoria: non hai ancora fatto un backup. Esporta un JSON dalle Impostazioni.';
+        banner.classList.remove('hidden');
+        return;
+      }
+      const diffDays = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+      if (diffDays > 30) {
+        banner.textContent = `Promemoria: l'ultimo backup risale a ${diffDays} giorni fa. Fai un nuovo export JSON.`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function renderAll() {
+      renderAuto();
+      renderClienti();
+      renderScadenze();
+      renderDocumenti();
+      updateHistory();
+      updateLogo();
+      updatePromptPreview();
+      document.querySelector('.brand').textContent = appData.nomeAttivita || 'AutoBroskiGroup';
+      document.getElementById('nomeAttivita').value = appData.nomeAttivita || '';
+      document.getElementById('partitaIva').value = appData.partitaIva || '';
+      document.getElementById('codiceAteco').value = appData.codiceAteco || '';
+      document.getElementById('newPin').value = appData.pin || '845620';
+      applyTheme(appData.settings.theme || 'dark');
+    }
+
+    window.addEventListener('load', function() {
+      let pin = '845620';
+      try {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        pin = savedData ? (JSON.parse(savedData).pin || '845620') : '845620';
+      } catch (err) {}
+      const userPIN = prompt('Inserisci PIN di accesso:');
+      if (userPIN !== pin) {
+        alert('PIN non corretto');
+        window.location.href = 'about:blank';
+        return;
+      }
+
+      loadData();
+      renderAll();
+      updateDashboard();
+      updateBackupReminder();
+
+      document.getElementById('menuBtn').addEventListener('click', () => toggleMenu());
+      document.getElementById('menuOverlay').addEventListener('click', () => toggleMenu(false));
+      document.getElementById('homeBtn').addEventListener('click', () => openPage('dashboard'));
+      document.getElementById('themeBtn').addEventListener('click', () => {
+        appData.settings.theme = appData.settings.theme === 'light' ? 'dark' : 'light';
+        applyTheme(appData.settings.theme);
+        addHistory('Impostazioni', 'Tema cambiato in ' + appData.settings.theme);
+        saveData();
+      });
+      document.querySelectorAll('.menu-item').forEach(btn => btn.addEventListener('click', () => openPage(btn.dataset.page)));
+
+      const hash = location.hash.replace('#/', '');
+      if (hash && hash !== 'dashboard') openPage(hash);
+      else openPage('dashboard');
+    });
+  </script>
 </body>
 </html>
